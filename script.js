@@ -339,7 +339,6 @@ const jsonData = [
   },
 ];
 
-console.log(jsonData);
 
 function getMaxColAndRow(arr) {
   const maxCounts = [];
@@ -347,7 +346,8 @@ function getMaxColAndRow(arr) {
   function recursiveArr(arr, maxCount) {
     if (arr.length != 0) {
       maxCount++;
-      arr.forEach((item) => {
+      arr.forEach((item,) => {
+
         if (item.place == "top" || item.place == null) {
           recursiveArr(item.children, maxCount);
         }
@@ -383,12 +383,24 @@ function getCol(item) {
   return colCount;
 }
 
+const columnsLevelNumbers = []
 function getColsAndRows() {
   let maxLimit = maxColAndRow[1];
   let RowsAndCols = {};
+  let count = 1;
+  let countChild = 1;
 
   function recursiveItem(item, maxLimit) {
     let itemColNum = getCol(item);
+    if (item.children.length == 0 && (item.place == "null" || item.is_sub == "1" || item.place != "left" && item.is_sub == "0")) {
+      if (item.is_sub == "0") {
+        columnsLevelNumbers.push(count++);
+      } else {
+        const lastValue = columnsLevelNumbers[columnsLevelNumbers.length - 1];
+        let lastValueNumber = lastValue && typeof lastValue == "string" ? lastValue.split("-")[0] : lastValue;
+        columnsLevelNumbers.push(lastValueNumber + "-" + countChild++);
+      }
+    }
     if (item.children.length != 0) {
       maxLimit--;
       RowsAndCols[item.name] = [itemColNum, 1];
@@ -450,12 +462,24 @@ function setColsAndRows() {
 
 setColsAndRows();
 
+const rowsLevelNumbers = []
 function getColsAndRowsv2() {
   let maxLimit = 3;
   let RowsAndCols = {};
-
+  let count = 1;
+  let countChild = 1;
   function recursiveItem(item, maxLimit) {
     let itemColNum = getCol(item);
+
+    if (item.children.length == 0 && (item.place == "null" || item.is_sub == "1" || item.place != "top" && item.is_sub == "0")) {
+      if (item.is_sub == "0") {
+        rowsLevelNumbers.push(count++);
+      } else {
+        const lastValue = rowsLevelNumbers[rowsLevelNumbers.length - 1];
+        let lastValueNumber = lastValue && typeof lastValue == "string" ? lastValue.split("-")[0] : lastValue;
+        rowsLevelNumbers.push(lastValueNumber + "-" + countChild++);
+      }
+    }
     if (item.children.length != 0) {
       maxLimit--;
       RowsAndCols[item.name] = [1, itemColNum];
@@ -477,7 +501,7 @@ function getColsAndRowsv2() {
 }
 
 const ColsAndRowsv2 = getColsAndRowsv2();
-console.log(ColsAndRowsv2);
+console.log(rowsLevelNumbers);
 
 function setColsAndRowsv2() {
   let level = 1;
@@ -490,15 +514,6 @@ function setColsAndRowsv2() {
   trElements[0].innerHTML += `
   <td colspan="3" rowspan="1">A</td>
   <td colspan="1" rowspan="1">B</td>
-  <td colspan="1" rowspan="1">1</td>    
-  <td colspan="1" rowspan="1">2</td>
-  <td colspan="1" rowspan="1">3</td>
-  <td colspan="1" rowspan="1">4</td>
-  <td colspan="1" rowspan="1">5</td>
-  <td colspan="1" rowspan="1">5-1</td>
-  <td colspan="1" rowspan="1">5-2</td>
-  <td colspan="1" rowspan="1">6</td>
-  <td colspan="1" rowspan="1">7</td>
   `;
 
 
@@ -524,15 +539,17 @@ function setColsAndRowsv2() {
     }
   });
   trElements.forEach((item, index) => {
-
     if (index !== 0) {
+      trElements[0].innerHTML += `
+        <td>${columnsLevelNumbers[index - 1]}</td>
+        `;
       item.innerHTML += `
-      <td>${index}</td>
+      <td>${rowsLevelNumbers[index - 1]}</td>
       `
       console.log(item)
       for (let i = 0; i < maxColAndRow[0]; i++) {
         item.innerHTML += `
-      <td></td>`;
+        <td></td>`;
       }
     }
   });
