@@ -1,3 +1,4 @@
+'use strict';
 const jsonData = [
   {
     name: "column 1",
@@ -338,17 +339,29 @@ const jsonData = [
     ],
   },
 ];
+const dynamicTableEl = document.querySelector("#dynamicTable");
+const theadEl = dynamicTableEl.querySelector("thead");
+const tbodyEl = dynamicTableEl.querySelector("tbody");
 
+console.log(jsonData);
 
-function getMaxColAndRow(arr) {
+function setClassNames(fw, fs, or, ta) {
+  let className = "";
+  if (fw == "bold") className += " text-bold";
+  if (fs == "italic") className += " text-italic";
+  if (or == "vertical") className += " text-vertical";
+  if (ta == "left") className += " text-left";
+  return className;
+}
+
+function getMaxColAndRow(arr, place) {
   const maxCounts = [];
 
   function recursiveArr(arr, maxCount) {
     if (arr.length != 0) {
       maxCount++;
-      arr.forEach((item,) => {
-
-        if (item.place == "top" || item.place == null) {
+      arr.forEach((item) => {
+        if (item.place == place || item.place == null) {
           recursiveArr(item.children, maxCount);
         }
       });
@@ -358,9 +371,32 @@ function getMaxColAndRow(arr) {
   }
 
   recursiveArr(arr, 0);
-  return [maxCounts.length, Math.max(...maxCounts)];
+  return place == "top"
+    ? [maxCounts.length, Math.max(...maxCounts)]
+    : [Math.max(...maxCounts), maxCounts.length];
 }
-let maxColAndRow = getMaxColAndRow(jsonData);
+
+let maxColAndRowTop = getMaxColAndRow(jsonData, "top");
+let maxColAndRowLeft = getMaxColAndRow(jsonData, "left");
+
+
+// for (let i = 0; i < maxColAndRowTop[1] + 1; i++) {
+//   theadEl.innerHTML += "<tr></tr>";
+// }
+// for (let i = 0; i < maxColAndRowLeft[1]; i++) {
+//   tbodyEl.innerHTML += "<tr></tr>";
+// }
+// const theadTr = theadEl.querySelectorAll("tr");
+// const tbodyTr = tbodyEl.querySelectorAll("tr");
+
+// theadTr[0].innerHTML += `
+//     <td colspan="${maxColAndRowLeft[0]}" rowspan="${maxColAndRowTop[1]}"></td>
+//     <td colspan="1" rowspan="${maxColAndRowTop[1]}">Setirler no</td>
+//     `;
+// theadTr[theadTr.length - 1].innerHTML += `
+//     <td colspan="${maxColAndRowLeft[0]}" rowspan="${maxColAndRowTop[1]}">A</td>
+//     <td colspan="1" rowspan="${maxColAndRowTop[1]}">B</td>
+//     `;
 
 function getCol(item) {
   let colCount = 0;
@@ -384,8 +420,8 @@ function getCol(item) {
 }
 
 const columnsLevelNumbers = []
-function getColsAndRows() {
-  let maxLimit = maxColAndRow[1];
+function getColsAndRowsTop() {
+  let maxLimit = maxColAndRowTop[1];
   let RowsAndCols = {};
   let count = 1;
   let countChild = 1;
@@ -421,15 +457,11 @@ function getColsAndRows() {
   return RowsAndCols;
 }
 
-const ColsAndRows = getColsAndRows();
+const ColsAndRowsTop = getColsAndRowsTop();
 
-const dynamicTableEl = document.querySelector("#dynamicTable");
-const theadEl = dynamicTableEl.querySelector("thead");
-const tbodyEl = dynamicTableEl.querySelector("tbody");
-
-function setColsAndRows() {
+function setColsAndRowsTop() {
   let level = 0;
-  for (let i = 0; i < maxColAndRow[1]; i++) {
+  for (let i = 0; i < maxColAndRowTop[1]; i++) {
     theadEl.innerHTML += `
     <tr class="dynamic"></tr>
     `;
@@ -441,8 +473,15 @@ function setColsAndRows() {
   `;
 
   function recursiveItem(item, level) {
+    const classNames = setClassNames(
+      item.font_weight,
+      item.font_style,
+      item.orientation,
+      item.ta
+    );
     trElements[level].innerHTML += `
-      <td colspan="${ColsAndRows[item.name][0]}" rowspan="${ColsAndRows[item.name][1]
+      <td class="${classNames}" style="font-size: ${item.font_size
+      }px" colspan="${ColsAndRowsTop[item.name][0]}" rowspan="${ColsAndRowsTop[item.name][1]
       }">${item.name}</td>
       `;
     level++;
@@ -460,10 +499,10 @@ function setColsAndRows() {
   });
 }
 
-setColsAndRows();
+setColsAndRowsTop();
 
 const rowsLevelNumbers = []
-function getColsAndRowsv2() {
+function getColsAndRowsLeft() {
   let maxLimit = 3;
   let RowsAndCols = {};
   let count = 1;
@@ -500,12 +539,11 @@ function getColsAndRowsv2() {
   return RowsAndCols;
 }
 
-const ColsAndRowsv2 = getColsAndRowsv2();
-console.log(rowsLevelNumbers);
+const ColsAndRowsLeft = getColsAndRowsLeft();
 
-function setColsAndRowsv2() {
+function setColsAndRowsLeft() {
   let level = 1;
-  for (let i = 0; i < maxColAndRow[0] + 1; i++) {
+  for (let i = 0; i < maxColAndRowTop[0] + 1; i++) {
     tbodyEl.innerHTML += `
     <tr class="dynamic"></tr>
     `;
@@ -518,16 +556,24 @@ function setColsAndRowsv2() {
 
 
   function recursiveItem(item) {
+    const classNames = setClassNames(
+      item.font_weight,
+      item.font_style,
+      item.orientation,
+      item.ta
+    );
     if (item.children.length != 0) {
       trElements[level].innerHTML += `
-      <td colspan="${ColsAndRowsv2[item.name][0]}" rowspan="${ColsAndRowsv2[item.name][1]
+        <td class="${classNames}" style="font-size: ${item.font_size
+        }px" colspan="${ColsAndRowsLeft[item.name][0]}" rowspan="${ColsAndRowsLeft[item.name][1]
         }">${item.name}</td>`;
       item.children.forEach((child) => {
         recursiveItem(child);
       });
     } else {
       trElements[level].innerHTML += `
-      <td colspan="${ColsAndRowsv2[item.name][0]}" rowspan="${ColsAndRowsv2[item.name][1]
+      <td class="${classNames}" style="font-size: ${item.font_size
+        }px" colspan="${ColsAndRowsLeft[item.name][0]}" rowspan="${ColsAndRowsLeft[item.name][1]
         }">${item.name}</td>`;
       level++;
     }
@@ -547,12 +593,12 @@ function setColsAndRowsv2() {
       <td>${rowsLevelNumbers[index - 1]}</td>
       `
       console.log(item)
-      for (let i = 0; i < maxColAndRow[0]; i++) {
+      for (let i = 0; i < maxColAndRowTop[0]; i++) {
         item.innerHTML += `
-        <td></td>`;
+        <td class="dashedBorder"></td>`;
       }
     }
   });
 }
 
-setColsAndRowsv2();
+setColsAndRowsLeft();
